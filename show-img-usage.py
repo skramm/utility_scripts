@@ -2,11 +2,14 @@
 # tested with Python 3.8.10
 # home: https://github.com/skramm/utility_scripts
 
+# !!! WORK IN PROGRESS !!!
+
 import glob
 import sys
 import os
 import re # Regular Expressions
 from pathlib import Path
+import numpy
 
 if len(sys.argv) == 1:
 	print( "missing folder" )
@@ -31,33 +34,57 @@ def search_str(file_path, word):
 full=folder+'/src'
 print('full=',full)
 	
-#print( "args="+sys.argv[1] )
 paths_png = glob.glob(full+'/**/*.png', recursive=True )
-#print( paths)
 paths_jpg = glob.glob('CM/src/**/*.jpg', recursive=True )
 paths_jpg += glob.glob('CM/src/**/*.jpeg', recursive=True )
 imgfiles = paths_jpg + paths_png
 print( 'png: total=', len(paths_png))
 print( 'jpg: total=', len(paths_jpg))
 
-paths_tex = glob.glob(full+'/**/*.tex*', recursive=True )
-print ('paths_tex=',paths_tex)
+texfiles = glob.glob(full+'/**/*.tex*', recursive=True )
 
+rows, cols = (len(texfiles), len(imgfiles))
+tex_img = numpy.zeros((rows, cols), dtype=numpy.int16)
+
+arr_unused=[]
 NbUnused=0
+cimg=0
 for imgfile in imgfiles:
-	print( 'processing', imgfile )
 	img=Path(imgfile).stem
+#	print( '\n* processing', img )
 	found=False
-	for texfile in paths_tex:
+	ctex=0
+	for texfile in texfiles:
 		if search_str(texfile, img ) == True:
 			found=True
-	if found == True:
-		print( 'found!' )
-	else:
-		NbUnused+=1         
+			tex_img[ctex][cimg]+=1
+		ctex+=1 
 
+	if found == False:
+		arr_unused.append(img)
+		NbUnused+=1      
+	cimg+=1
+	
 print('RESULTS')
-print('total:\n-', len(imgfiles),'image files')
-print( len(paths_tex),'latex files')
-print( 'unused images:', NbUnused )
+print('total:')
+print( ' -image files:', len(imgfiles) )
+print( ' -latex files:', len(texfiles) )
+print( ' -Unused images:', NbUnused )
+for i in arr_unused:
+	print( ' -',i )
+
+#print( tex_img )
+
+ctex=0
+for texfile in texfiles:
+	print( 'file:', texfile, 'uses', sum(tex_img[ctex]), 'images'  )
+	cimg=0
+	for i in tex_img[ctex]:
+		if i != 0:
+			print( ' -', Path(imgfiles[cimg]).stem )
+		cimg+=1
+	ctex+=1
+	
+	
+	
 
