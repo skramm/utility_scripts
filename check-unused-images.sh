@@ -1,6 +1,7 @@
 # checks for unused images in a folder
 # S. Kramm - 2023/11
 # input: folder name where the *.tex files are stored
+# source: https://github.com/skramm/utility_scripts
 
 set +x
 
@@ -9,6 +10,13 @@ if [ -z $1 ]; then
 	exit 1
 fi
 folder=$1
+
+if ! [ -e $folder ]
+then
+	echo "Error, folder $folder does not exist in current location, exiting..."
+	exit 1
+fi
+
 
 find $folder/ -iname "*.png" > /tmp/imglist
 find $folder/ -iname "*.jpg" >> /tmp/imglist
@@ -20,7 +28,7 @@ do
 	img="${img2%.*}"
 #	echo "processing image '$img2'"
 	notfound=1
-	for fn in CM/src/*.tex*
+	for fn in $folder/src/*.tex*
 	do
 		grep "$img" "$fn" >/dev/null
 		rv=$?

@@ -1,3 +1,5 @@
 chmod +x *.sh
+chmod +x *.py
 cp *.sh /usr/local/bin/
+cp *.py /usr/local/bin/
 
