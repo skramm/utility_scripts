@@ -1,5 +1,5 @@
-chmod +x *.sh
-chmod +x *.py
-cp *.sh /usr/local/bin/
-cp *.py /usr/local/bin/
+fn=show-img-usage
+chmod +x $fn
+cp $fn /usr/local/bin/
+
 

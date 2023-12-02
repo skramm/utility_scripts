@@ -16,12 +16,17 @@ import numpy
 source='src'
 
 if len(sys.argv) == 1:
-	print( "missing folder" )
+	print( "Error: missing folder name" )
 	sys.exit(1)
+
+if sys.argv[1] == '-h':
+	print('Argument: the name of folder where you want to run the analysis' )
+	sys.exit(0)
+
 
 folder=sys.argv[1]
 if os.path.isdir(folder) == False :
-	print( 'folder"',folder, '"does not exist' )
+	print( 'Error: requested folder "' + folder + '" does not exist' )
 	sys.exit(2)
 
 def search_str(file_path, word):
@@ -33,6 +38,9 @@ def search_str(file_path, word):
 			return False
 
 full = folder + '/' + source
+if os.path.isdir(full) == False :
+	print( 'Error: folder "' + full + '" does not exist, see "-h" option' )
+	sys.exit(2)
 	
 paths_png  = glob.glob( full + '/**/*.png',  recursive=True )
 paths_jpg  = glob.glob( full + '/**/*.jpg',  recursive=True )
@@ -81,12 +89,24 @@ for texfile in texfiles:
 	cimg=0
 	for i in tex_img[ctex]:
 		if i != 0:
-#			print( ' -', Path(imgfiles[cimg]).stem )
 			img2=re.sub( full+'/', '', imgfiles[cimg] )
 			print( ' -',  img2 )
 		cimg+=1
 	ctex+=1
 	
 	
-	
+# print images used multiple times
+print( "* Images used multiple times" )
+for cimg in range(len(imgfiles)):
+	sum = 0
+	texfarr=[]
+	for ctex in range(len(texfiles)):
+		n = tex_img[ctex][cimg]
+		sum += n
+		if n > 0:
+			texfarr.append( ctex )
+	if sum > 1:		
+		print( " -image " + imgfiles[cimg] + " is used " + str(sum) + " times:" )
+		for f in texfarr:
+			print( "  -", texfiles[f] )
 
