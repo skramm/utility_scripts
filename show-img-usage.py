@@ -4,12 +4,16 @@
 
 # !!! WORK IN PROGRESS !!!
 
+
 import glob
 import sys
 import os
 import re # Regular Expressions
 from pathlib import Path
 import numpy
+
+# source folder in given folder
+source='src'
 
 if len(sys.argv) == 1:
 	print( "missing folder" )
@@ -22,24 +26,18 @@ if os.path.isdir(folder) == False :
 
 def search_str(file_path, word):
 	with open(file_path, 'r') as file:
-# read all content of a file
 		content = file.read()
-# check if string present in a file
 		if word in content:
 			return True
 		else:
 			return False
 
-
-full=folder+'/src'
-print('full=',full)
+full = folder + '/' + source
 	
-paths_png = glob.glob(full+'/**/*.png', recursive=True )
-paths_jpg = glob.glob('CM/src/**/*.jpg', recursive=True )
-paths_jpg += glob.glob('CM/src/**/*.jpeg', recursive=True )
+paths_png  = glob.glob( full + '/**/*.png',  recursive=True )
+paths_jpg  = glob.glob( full + '/**/*.jpg',  recursive=True )
+paths_jpg += glob.glob( full + '/**/*.jpeg', recursive=True )
 imgfiles = paths_jpg + paths_png
-print( 'png: total=', len(paths_png))
-print( 'jpg: total=', len(paths_jpg))
 
 texfiles = glob.glob(full+'/**/*.tex*', recursive=True )
 
@@ -61,15 +59,17 @@ for imgfile in imgfiles:
 		ctex+=1 
 
 	if found == False:
-		arr_unused.append(img)
+		img2=re.sub( full+'/', '', imgfile )
+		arr_unused.append(img2)
 		NbUnused+=1      
 	cimg+=1
 	
 print('RESULTS')
-print('total:')
-print( ' -image files:', len(imgfiles) )
 print( ' -latex files:', len(texfiles) )
-print( ' -Unused images:', NbUnused )
+print( ' -image files:', len(imgfiles) )
+print( '   -png:', len(paths_png) )
+print( '   -jpeg:', len(paths_jpg))
+print( ' -unused images:', NbUnused )
 for i in arr_unused:
 	print( ' -',i )
 
@@ -77,11 +77,13 @@ for i in arr_unused:
 
 ctex=0
 for texfile in texfiles:
-	print( 'file:', texfile, 'uses', sum(tex_img[ctex]), 'images'  )
+	print( "file: '"+ texfile+ "' uses", sum(tex_img[ctex]), "images" )
 	cimg=0
 	for i in tex_img[ctex]:
 		if i != 0:
-			print( ' -', Path(imgfiles[cimg]).stem )
+#			print( ' -', Path(imgfiles[cimg]).stem )
+			img2=re.sub( full+'/', '', imgfiles[cimg] )
+			print( ' -',  img2 )
 		cimg+=1
 	ctex+=1
 	
