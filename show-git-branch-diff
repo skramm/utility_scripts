@@ -1,0 +1,57 @@
+#!/usr/bin/bash
+
+# A tool that generates git diffs between master branch and add the others
+# arguments:
+# -1: folder name where the repo is
+# -2 (optional): considered file we are interested in. If missing, all files will be "diffed"
+#
+# output will be in /tmp/gitdiff, two files per branch, a raw diff and a html version
+
+# dependencies:
+# - colordiff
+# - aha (https://github.com/theZiz/aha)
+
+
+
+set +x
+brmaster=master
+
+if [ -z $1 ]; then
+	echo "Error, missing folder name, exiting..."
+	exit 1
+fi
+folder=$1
+
+if ! [ -e $folder ]
+then
+	echo "Error, folder $folder does not exist in current location, exiting..."
+	exit 1
+fi
+
+if ! [ -z $2 ]; then
+	echo "Comparing only file $2"
+	fn=$2
+fi
+
+mkdir -p /tmp/gitdiff
+pushd $folder
+git branch --list>/tmp/brlist
+
+
+while read -r brname
+do
+#	echo "branch $brname"
+	if [  "$brname" != "* $brmaster" ]
+	then
+		echo "comparing branch $brname with $brmaster"
+		git diff $brmaster $brname -- $fn | colordiff | aha > /tmp/gitdiff/$brname.html
+		git diff $brmaster $brname -- $fn > /tmp/gitdiff/$brname
+	fi
+	 
+done < /tmp/brlist
+
+popd
+
+
+
+
