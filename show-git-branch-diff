@@ -12,9 +12,15 @@
 # - aha (https://github.com/theZiz/aha)
 
 
-
 set +x
+
+# static stuff
+
+# name of reference branch (it could be needed to switch to 'main')...
 brmaster=master
+
+# output folder
+dest=/tmp/gitdiff
 
 if [ -z $1 ]; then
 	echo "Error, missing folder name, exiting..."
@@ -34,23 +40,22 @@ if ! [ -z $2 ]; then
 fi
 
 mkdir -p /tmp/gitdiff
-pushd $folder
+pushd $folder >/dev/null
 git branch --list>/tmp/brlist
 
 
 while read -r brname
 do
-#	echo "branch $brname"
 	if [  "$brname" != "* $brmaster" ]
 	then
 		echo "comparing branch $brname with $brmaster"
 		git diff $brmaster $brname -- $fn | colordiff | aha > /tmp/gitdiff/$brname.html
-		git diff $brmaster $brname -- $fn > /tmp/gitdiff/$brname
+		git diff $brmaster $brname -- $fn > /tmp/gitdiff/$brname.diff
 	fi
 	 
 done < /tmp/brlist
 
-popd
+popd >/dev/null
 
 
 
