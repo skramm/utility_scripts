@@ -11,9 +11,7 @@
 # - colordiff
 # - aha (https://github.com/theZiz/aha)
 
-
-set +x
-
+#######################################################
 # static stuff
 
 # name of reference branch (it could be needed to switch to 'main')...
@@ -21,6 +19,78 @@ brmaster=master
 
 # output folder
 dest=/tmp/gitdiff
+#######################################################
+
+set +x
+
+function step_gitdiff
+{
+	while read -r brname
+	do
+		if [  "$brname" != "* $brmaster" ]
+		then
+			echo "comparing branch $brname with $brmaster"
+			git diff $brmaster $brname -- $fn | colordiff | aha > $dest/diffs/$brname.html
+			git diff $brmaster $brname -- $fn > $dest/diffs/$brname.diff
+			git ls-tree $brname -r --name-only >$dest/files/FILES_$brname
+		fi
+		 
+	done < /tmp/brlist
+}
+
+# this function will compare items in file $1 with items in $2
+# if item present in $1 but not in $2, it is printed out.
+# Third argument is there to tell if missing item should be in first or second column of HTML table 
+function comp_files
+{
+	fn1=$dest/files/FILES_$1 
+	fn2=$dest/files/FILES_$2
+	echo "  * comparing content of $fn1 with $fn2"
+	while read it1
+	do
+		found=0
+		while read it2
+		do
+			if [ $it1 = $it2 ]
+			then
+				found=1
+			fi
+		done < $fn2
+
+		if [ $found = 0 ]
+		then
+			if [ $3 = 1 ]
+			then
+				echo "<tr><td>$it1</td><td></td></tr>">>$out
+			else
+				echo "<tr><td></td><td>$it1</td></tr>">>$out
+			fi
+		fi
+	done < $fn1
+}
+
+
+function step_filediff
+{
+	while read -r brname
+	do
+		if [  "$brname" != "* $brmaster" ]
+		then
+			out=$dest/COMP_${brname}.html
+			echo "* comparing files in $brname with $brmaster"
+			echo "<html><head><style>table, td, th {border: 1px solid;}</style></head>">$out
+			echo "<body><h2>List of files presence differences in branch $brmaster and branch $brname</h2>" >>$out
+			echo "<table style='border-collapse:collapse;'>" >>$out
+			echo "<tr><th>branch:<br>$brmaster</th>" >>$out
+			echo "<th>branch:<br>$brname</th></tr>" >>$out
+			comp_files $brmaster $brname 1
+			comp_files $brname $brmaster 2
+		echo "</table></body></html>" >>$out
+		fi
+	done < /tmp/brlist
+}
+
+
 
 if [ -z $1 ]; then
 	echo "Error, missing folder name, exiting..."
@@ -39,21 +109,28 @@ if ! [ -z $2 ]; then
 	fn=$2
 fi
 
-mkdir -p /tmp/gitdiff
+
+mkdir -p $dest/files
+mkdir -p $dest/diffs
+rm $dest/*
+rm $dest/files/*
+rm $dest/diffs/*
+
 pushd $folder >/dev/null
+
+# first, get list of file in master branch
+git ls-tree $brmaster -r --name-only >$dest/files/FILES_$brmaster
+
+# get a list of (local) branches
 git branch --list>/tmp/brlist
 
+# proceed to 'git diff' operation
+step_gitdiff
 
-while read -r brname
-do
-	if [  "$brname" != "* $brmaster" ]
-	then
-		echo "comparing branch $brname with $brmaster"
-		git diff $brmaster $brname -- $fn | colordiff | aha > /tmp/gitdiff/$brname.html
-		git diff $brmaster $brname -- $fn > /tmp/gitdiff/$brname.diff
-	fi
-	 
-done < /tmp/brlist
+# compare existing files
+step_filediff
+
+
 
 popd >/dev/null
 
