@@ -104,19 +104,28 @@ then
 	exit 1
 fi
 
+
 if ! [ -z $2 ]; then
 	echo "Comparing only file $2"
 	fn=$2
 fi
 
-
 mkdir -p $dest/files
 mkdir -p $dest/diffs
-rm $dest/*
-rm $dest/files/*
-rm $dest/diffs/*
+rm -f $dest/files/*
+rm -f $dest/diffs/*
+rm -f $dest/*
 
 pushd $folder >/dev/null
+
+git status 1>/dev/null 2>/dev/null
+if [ $? != 0 ]
+then
+	echo "Failure, folder is not a git repository"
+	exit 2
+fi
+
+read
 
 # first, get list of file in master branch
 git ls-tree $brmaster -r --name-only >$dest/files/FILES_$brmaster
