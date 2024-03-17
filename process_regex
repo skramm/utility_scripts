@@ -1,24 +1,18 @@
-# UNTESTED !!
 # evaluation de regex
 
 # ce script va évaluer une regex donnée via un ficher csv récupéré depuis Moodle
 
 # arguments donnés au script
-
-
 # 1 - colonne du csv dans laquelle se trouve la regex à tester
 # 2 - nom du fichier test
 
-
-# paramètres dans le fichier regex_check.conf
-
+ Paramètres dans le fichier regex_check.conf
 # - corrf: nom du dossier contenant les sorties attendues
-# rem: doit avoir le même nom que le fichier test
+#  (rem: doit avoir le même nom que le fichier test)
 # - namecol: colonne du csv dans laquelle se trouve le nom de l'étudiant
 # - inputfn: input filename (Moodle-generated)
 
 set +x
-
  
 if [ -z "$1" ]; 
 then
@@ -31,7 +25,6 @@ then
     echo "Error, required arg 2 missing: name of test file"
     exit 2
 fi
-
 
 col=$1
 fntest=$2
@@ -49,7 +42,6 @@ echo "namecol=$namecol"
 echo "corrf=$corrf"
 echo "inputfn=$inputfn"
 
-inputfn
 if [ ! -f $inputfn ]; then
     echo "Error, input file $inputfn missing!"
     exit 4
@@ -73,15 +65,18 @@ do
 		echo "regex empty!"
 	else
 		echo "regex=$regex"
-		echo "regex result:"
+		echo -e "-----------------------\n${RED}regex result:${NC}"
 		grep -P "$regex" $fntest
-		echo "diff:"
+		echo -e "-----------------------\n${RED}diff:${NC}"
 		grep -P "$regex" $fntest >/tmp/reg_res
 		diff -y /tmp/reg_res $corrf/$fntest
 		n=$(grep -P "$regex" $fntest | wc -l)
-		echo "nb found=$n"
+		echo "${NC}nb found=$n${NC}"
 	fi
-		
+
+	echo "Press [ENTER] to continue"
+	read -s < /dev/tty
+
 done < "$inputfn"
 
 
