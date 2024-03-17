@@ -19,16 +19,29 @@
 
 set +x
 
+ 
+if [ -z "$1" ]; 
+then
+    echo "Error, required arg 1 missing: column index"
+    exit 1
+fi
+
+if [ -z "$2" ]; 
+then
+    echo "Error, required arg 2 missing: name of test file"
+    exit 2
+fi
+
 
 col=$1
 fntest=$2
 
 configfile=regex_check.conf
-if ! [ -f $configfile ]; then
-    echo " Error, file $configfile missing!"
-    exit 1
+if [ ! -f $configfile ]; then
+    echo "Error, file $configfile missing!"
+    exit 3
 fi
-    
+   
 source $configfile
 
 echo "PRINT PARAMS"
@@ -36,27 +49,16 @@ echo "namecol=$namecol"
 echo "corrf=$corrf"
 echo "inputfn=$inputfn"
 
+inputfn
+if [ ! -f $inputfn ]; then
+    echo "Error, input file $inputfn missing!"
+    exit 4
+fi
+
 
 RED='\033[1;31m'
 GR='\033[1;32m'
 NC='\033[0m'
-
-function trait()
-{
-	reg=$1
-	fich=$2
-	
-	if [ ${#reg} == 0 ]
-	then
-		echo "regex empty!"
-	else
-		echo "regex=$reg"
-		echo "regex result:"
-		grep -P "$reg" $fich
-		n=$(grep -P "$reg" $fich | wc -l)
-		echo "nb found=$n"
-	fi
-}
 
 while IFS=";" read -ra tab
 do
@@ -64,21 +66,23 @@ do
 	name=${tab[namecol]}  
 	echo -e "\n${RED}name=$name${NC}"
 
-	echo -e "${GR}q2.1: nombres${NC}"
-	regex=${tab[col]}" $fntest
+	regex="${tab[col]}"
 
-	if [ ${#reg} == 0 ]
+	if [ ${#regex} == 0 ]
 	then
 		echo "regex empty!"
 	else
-		echo "regex=$reg"
+		echo "regex=$regex"
 		echo "regex result:"
 		grep -P "$regex" $fntest
+		echo "diff:"
+		grep -P "$regex" $fntest >/tmp/reg_res
+		diff -y /tmp/reg_res $corrf/$fntest
 		n=$(grep -P "$regex" $fntest | wc -l)
 		echo "nb found=$n"
 	fi
 		
-done < $input
+done < "$inputfn"
 
 
 
