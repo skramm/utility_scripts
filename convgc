@@ -1,0 +1,94 @@
+# convert gift to csv
+
+tabRep=()
+fn=$1
+fn=quizz_DNS_tmp.gift
+mode=qOFF
+modeA=NO
+n=1
+idxGA=0
+out=woo.csv
+
+
+
+printQuestions()
+{
+	echo "printQuestions"
+	printf "$idxGA;">>$out
+	for i in "${!tabRep[@]}"
+	do
+		printf "${tabRep[i]};">>$out
+	done
+}
+
+#tabRep+=("aaa")
+#echo "tabRep=${tabRep[@]}"
+#tabRep+=("bbb xyz")
+#echo "tabRep=${tabRep[@]}"
+#printQuestions
+#exit
+	
+	
+echo "type;questien;good;answ">$out
+
+IFS="\n"; while read line
+do
+# check if 2 first characters are ::
+# if so, start of question
+
+	c1=${line:0:1}
+	c2=${line:0:2}
+	len=${#line}
+	c3=${line:1}
+	echo -e "\n $n line=$line"
+	echo "c1=-$c1- c2=-$c2-"
+
+if [ "$mode" = "qON" ]
+then
+	printf "MCQ;$line" >> $out
+fi
+
+
+if [ "$c2" = "::" ]
+then
+	mode=qON
+	idxanswer=0
+fi
+
+if [ "$c1" = "{" ]
+then
+	mode=qANS
+	idxanswer=0
+fi
+
+if [ "$c1" = "}" ]
+then
+	mode=qOFF
+	modeA=NO
+	printQuestions
+	printf "\n" >> $out
+	tabRep=()
+fi
+
+if [ "$mode" = "qANS" ]
+then
+	echo "c3=-$c3-"
+	tabRep+=("$c3")
+	if [ "$c1" = "=" ]
+	then
+		modeA=AGOOD
+		idxGA=$idxanswer
+	fi
+	if [ "$c1" = "~" ]
+	then
+		modeA=ABAD
+	fi
+	idxanswer=$((idxanswer+1))
+fi	
+
+echo "mode=$mode modeA=$modeA tabRep=${tabRep[@]}"
+
+n=$((n+1))
+done < $fn
+
+
