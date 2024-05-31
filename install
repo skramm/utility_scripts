@@ -8,5 +8,6 @@ inst()
 inst show-img-usage
 inst show-git-branch-diff
 inst process_regex
+inst gift2woo
 
 
