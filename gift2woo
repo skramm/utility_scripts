@@ -1,42 +1,73 @@
-# convert gift to Wooclap/csv
-# TODO: gerer les questions TF ( {T} ou {F} )
+# convert gift to xlsx, to import into Wooclap/
+# S. Kramm - 2024
+# WIP
 
 tabRep=()
 fn=$1
-fn=quizz_DNS_tmp.gift
+fn=quizz_DNS.gift
+
 mode=qOFF
 modeA=NO
 n=1
+
+# index of good answer in table tabRep
 idxGA=0
 out=woo.csv
 
+# question line counter
+qline=0
 
 
-printQuestions()
+#-----------------------------------------------------
+printAnswers()
 {
-#	echo "printQuestions"
-	printf "$idxGA">>$out
+	printf ";$idxGA">>$out
 	for i in "${!tabRep[@]}"
 	do
-		printf ";${tabRep[i]}">>$out
+		if [ $i != 0 ]
+		then
+#			echo "i=$i tabRep[i]=${tabRep[i]}"
+			printf ";${tabRep[i]}">>$out
+		fi
 	done
+	qline=0
 }
 
-	
+#-----------------------------------------------------
+# process true/false questions
+processTF()
+{
+	if [ "$c3" = "{T}" ] 
+	then
+		printf ";1;True;False\n" >>$out
+	else
+		printf ";2;True;False\n" >>$out
+	fi
+	mode=qOFF
+	qline=0
+}
+
 echo "Type;Title;Correct;Choice;Choice;Choice;Choice;Choice;Choice;Choice;Choice;Choice">$out
 
-IFS="\n"; while read line
+while read line
 do
-	c1=${line:0:1}
-	c2=${line:0:2}
-	len=${#line}
-	c3=${line:1}
-	echo -e "\n $n line=$line"
-	echo "c1=-$c1- c2=-$c2-"
+c1=${line:0:1}
+c2=${line:0:2}
+c3=${line:0:3}
+len=${#line}
+
+cAll=${line:1}
+echo -e "\n $n line=$line"
+echo "c1=-$c1- c2=-$c2- qline=-$qline- mode=$mode modeA=$modeA"
 
 if [ "$mode" = "qON" ] && [ "$c1" != "{" ]
 then
-	printf "MCQ;$line;" >> $out
+	if [ $qline = 0 ]
+	then
+		printf "MCQ;" >> $out
+	fi
+	printf "$line " >> $out
+	qline=$((qline+1))
 fi
 
 
@@ -46,25 +77,31 @@ then
 	idxanswer=0
 fi
 
-if [ "$c1" = "{" ]
+if [ "$c3" = "{T}" ] || [ "$c3" = "{F}" ]
 then
-	mode=qANS
-	idxanswer=0
-fi
+	echo "TRUE/FALSE"
+	processTF
+else
+	if [ "$c1" = "{" ]
+	then
+		mode=qANS
+		idxanswer=0
+	fi
 
-if [ "$c1" = "}" ]
-then
-	mode=qOFF
-	modeA=NO
-	printQuestions
-	printf "\n" >> $out
-	tabRep=()
+	if [ "$c1" = "}" ]
+	then
+		mode=qOFF
+		modeA=NO
+		printAnswers
+		printf "\n" >> $out
+		tabRep=()
+	fi
 fi
 
 if [ "$mode" = "qANS" ]
 then
-	echo "c3=-$c3-"
-	tabRep+=("$c3")
+	echo "cAll=-$cAll"
+	tabRep+=("$cAll")
 	if [ "$c1" = "=" ]
 	then
 		modeA=AGOOD
@@ -74,6 +111,7 @@ then
 	then
 		modeA=ABAD
 	fi
+#	echo "tabrep size=${#tabRep[@]}"
 	idxanswer=$((idxanswer+1))
 fi	
 
@@ -81,5 +119,7 @@ echo "mode=$mode modeA=$modeA tabRep=${tabRep[@]}"
 
 n=$((n+1))
 done < $fn
+
+soffice --headless --convert-to xlsx $out
 
 
