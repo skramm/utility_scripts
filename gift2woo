@@ -2,17 +2,28 @@
 # S. Kramm - 2024
 # WIP
 
-tabRep=()
-fn=$1
-fn=quizz_DNS.gift
+if [ -z $1 ]
+then
+	echo "Missing filename, exiting..."
+	exit 1
+fi
 
+fn=$1
+out=${fn%.*}.csv
+
+if [ ! -f $fn ]; then
+    echo "Error, input file $fn missing!"
+    exit 2
+fi
+
+
+tabRep=()
 mode=qOFF
 modeA=NO
 n=1
 
 # index of good answer in table tabRep
 idxGA=0
-out=woo.csv
 
 # question line counter
 qline=0
@@ -120,6 +131,17 @@ echo "mode=$mode modeA=$modeA tabRep=${tabRep[@]}"
 n=$((n+1))
 done < $fn
 
-soffice --headless --convert-to xlsx $out
+# replace all closing html tags with open ones 
+# (so its easier to remove them)
+sed 's/<\//</g' $out >/tmp/gift2woo_tmp
+
+
+# remove all html tags
+sed 's/<br>//g' /tmp/gift2woo_tmp >/tmp/gift2woo_tmp2
+sed 's/<code>//g' /tmp/gift2woo_tmp2 >$out
+
+
+# problem here: CSV export filter settings
+#soffice --headless --convert-to xlsx $out
 
 
