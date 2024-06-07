@@ -1,28 +1,36 @@
 # gather HW info, using standard utilities
-# (might be redundant !)
-set -x
+# (some might be redundant !)
+# S. Kramm - 2024/06
+
+
 out=hw.html
 
 ftool()
 {
-	echo "Running tool $1"
-	echo "<hr><h2>$1</h2>">> $out
-	$1 $2 |ansi2html >>$out
+	echo "-Running tool $1"
+	$1 $2 |ansi2html -n >/tmp/hw
+	n=$(wc -l </tmp/hw)
+	echo "<hr><h2>$1 output ($n lines)</h2>">> $out
+	echo "<a name=\"$1\">">> $out	
+	cat /tmp/hw >> $out
 }
 
 echo "<html><head><title>HW info</title>"> $out
-echo "<body>">> $out
+echo "<body><h1>Hardware details</h1>">> $out
 
-ftool hwinfo
-
-ftool lshw
+echo "<ul>">> $out
+echo "<li><a href=\"#hwinfo\">hwinfo</a></li>">> $out
+echo "<li><a href=\"#lshw\">lshw</a></li>">> $out
+echo "<li><a href=\"#inxi\">inxi</a></li>">> $out
+echo "</ul>">> $out
 
 ftool inxi -Fx
+ftool lshw
+ftool hwinfo
 
-
-
-echo "<hr>the end">> $out
-echo "Generated on $(date -I)">> $out
+echo "<hr>Generated on $(date -I)">> $out
 echo "</body></html>">> $out
 
+sed 's/color:#bbb/color:#000/g' $out >/tmp/hw
+cp /tmp/hw $out
 
