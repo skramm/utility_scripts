@@ -1,0 +1,28 @@
+# gather HW info, using standard utilities
+# (might be redundant !)
+set -x
+out=hw.html
+
+ftool()
+{
+	echo "Running tool $1"
+	echo "<hr><h2>$1</h2>">> $out
+	$1 $2 |ansi2html >>$out
+}
+
+echo "<html><head><title>HW info</title>"> $out
+echo "<body>">> $out
+
+ftool hwinfo
+
+ftool lshw
+
+ftool inxi -Fx
+
+
+
+echo "<hr>the end">> $out
+echo "Generated on $(date -I)">> $out
+echo "</body></html>">> $out
+
+
