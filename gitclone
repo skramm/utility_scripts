@@ -20,17 +20,24 @@ col_idurn=8
 # 2: nom fichier csv contenant les id github
 # 3: chemin destination
 
+
+function usage()
+{
+	echo "gitclone nomdepot inputfile [outputfolder]"
+	exit 1
+}
+
 if [ "$1" == "" ]
 then
 	echo "Erreur, manque nom des dépots"
-	exit 1
+	usage
 fi
 repo=$1
 
 if [ "$2" == "" ]
 then
 	echo "Erreur, manque nom fichier CSV d'entrée"
-	exit 1
+	usage
 fi
 input_file=$2
 
@@ -39,14 +46,12 @@ if ! [ -f $input_file ]; then
 	exit 2
 fi
 
-
-if [ "$3" == "" ]
+dst=.
+if ! [ "$3" == "" ]
 then
-	echo "Erreur, manque destination"
-	exit 1
+	dst=$3
 fi
-dst=$3
-mkdir -p $3
+mkdir -p $dst
 
 today=$(date +"%Y%m%d-%H%M")
 logfile=log_clonage_$today.csv
@@ -56,26 +61,37 @@ echo "# log clonage Github du $today">$logfile
 dest=$dst/github_$today
 mkdir -p $dest
 
+# compteurs
+c_err=0
+c_ok=0
+c_li=0
+
 while IFS="," read -ra tab
 do
 	word=${tab[0]}
 	if ! [ "${word:0:1}" == "#" ]
 	then
+		((c_li+=1))
 		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		gr=${tab[$col_groupe]}
 		idurn=${tab[$col_idurn]}
 		idgh=${tab[$col_idgithub]}
-		echo "clonage depot de $idurn, gr=$gr, depot=$idgh"
+		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => "
 		mkdir -p $dest/$gr
-		git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" >/dev/null
+#		git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+		whoami 1>/dev/null 2>/dev/null
 		if [ $? != 0 ]
 		then
+			((c_err+=1))
 			echo "ECHEC" >> $logfile
+			echo "ECHEC"
 		else
+			((c_ok+=1))
 			echo "succès" >> $logfile
+			echo "succès"
 		fi
 	fi
 
-done < $1
+done < $input_file
 
-echo "fini"
+echo -e "*** bilan ***: total de $c_li lignes\n -succès:$c_ok\n -echecs:$c_err"

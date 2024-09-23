@@ -7,7 +7,8 @@ Ce script va réaliser un clonage d'un ensemble de dépot Github ayant tous le m
 mais fait par des comptes différents (étudiants).
 
 Contexte: permettre d'avoir localement les travaux d'étudiants présent sur leur repo.
-Il faut évidemment leur IMPOSER le nom du dépot, et qu'il soit en "public"
+Il faut évidemment leur IMPOSER le nom du dépot, et qu'il soit en "public".
+Pour leurs identifiant Github, ils sont par contre libres de choisir `Carotte23` ou `Superman56`...
 
 Il faut avoir préalablement un fichier csv contenant leur identifiant Github ainsi
 que leur groupe et un identifiant permettant de les connecter avec leur nom.
@@ -16,11 +17,15 @@ leur identifiant universitaire (qui est utilisé ici).
 
 ## Utilisation
 ```
-$ gitclone nomdepot inputfile outputfolder
+$ gitclone nomdepot inputfile [outputfolder]
 ```
-- `nomdepot`: nom du dépot Github
+- `nomdepot`: nom des dépots Github
 - `inputfile`: nom du fichier CSV d'entrée contenant les id github ainsi que les identifiants
-- `outputfolder`: nom du dossier de sortie (peut être `.` pour le dossier courant).
+- `outputfolder`: nom du dossier de sortie.
+Peut être absent, les clones seront créés dans le dossier courant.
+
+Ceci va créer dans le dossier `outputfolder` un dossier `github_AAAAMMJJ_HHMM` contenant les clones
+des dépots, en se limitant à une profondeur de 1 (option `--depth` de git clone).
 
 # Notes:
 
