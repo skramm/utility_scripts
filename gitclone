@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# !!!!!!!!!!!!!!! WIP !!!!!!!!!!!!!!!
+
+# parametrage colonnes fichier CSV d'entrée (commence à index 0)
+col_groupe=6
+col_idgithub=10
+col_idurn=9
+
+
+# args:
+# 1: nom fichier csv contenant les id github
+# 2: chemin destination
+
+if [ "$1" == "" ]
+then
+	echo "Erreur, manque nom fichier"
+	exit 1
+fi
+input_file=$1
+
+if ! [ -f $input_file ]; then
+	echo " -Erreur: fichier '$input_file' introuvable!"
+	exit 2
+fi
+
+
+if [ "$2" == "" ]
+then
+	echo "Erreur, manque destination"
+	exit 1
+fi
+dst=$2
+mkdir -p $2
+
+
+
+today=$(date +"%Y%m%d-%H%M")
+dest=$dst/github_$today
+mkdir -p $dest
+
+echo "col_groupe=$col_groupe"
+
+set -x
+while IFS=";" read -ra tab
+do
+	echo "TOUT=${tab[@]}"
+	word=${tab[0]}
+	if ! [ "${word:0:1}" == "#" ]
+	then
+		gr=${tab[$col_groupe]}
+		idurn=${tab[$col_idurn]}
+		idgh=${tab[$col_idgithub]}
+		echo "clonage depot de $idurn, gr=$gr, depot=$idgh"
+		mkdir -p $dest/$gr
+		git clone git@github.com:$idgh/tp-r504.git "$dest/$gr/$idurn"
+		if [ $? != 0 ]
+		then
+			echo "ECHEC clonage de $gr,$idurn,$idgh"
+			exit 1
+		fi
+	fi
+
+done < $1
+
+echo "fini"
