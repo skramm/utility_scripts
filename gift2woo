@@ -136,9 +136,11 @@ done < $fn
 sed 's/<\//</g' $out >/tmp/gift2woo_tmp
 
 
-# remove all html tags
+# remove some html tags
 sed 's/<br>//g' /tmp/gift2woo_tmp >/tmp/gift2woo_tmp2
-sed 's/<code>//g' /tmp/gift2woo_tmp2 >$out
+sed 's/<code>//g' /tmp/gift2woo_tmp2 >/tmp/gift2woo_tmp3
+sed 's/<ul>//g' /tmp/gift2woo_tmp3 >/tmp/gift2woo_tmp4
+sed 's/<li>//g' /tmp/gift2woo_tmp4 >$out
 
 
 # problem here: CSV export filter settings
