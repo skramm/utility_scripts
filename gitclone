@@ -1,23 +1,38 @@
 #!/bin/bash
 
-# !!!!!!!!!!!!!!! WIP !!!!!!!!!!!!!!!
+# Doc: voir le fichier gitclone.md
+
+# usage:
+# $ gitclone nomdepot inputfile outputfolder
+# -nomdepot: nom du dépot Github
+# -inputfile: nom du fichier CSV d'entrée contenant les id github ainsi que les identifiants
+# -outputfolder: nom du dossier de sortie (peut être `.` pour le dossier courant).
+
 
 # parametrage colonnes fichier CSV d'entrée (commence à index 0)
-col_groupe=6
-col_idgithub=10
-col_idurn=9
+col_groupe=5
+col_idgithub=9
+col_idurn=8
 
 
 # args:
-# 1: nom fichier csv contenant les id github
-# 2: chemin destination
+# 1: nom dépot
+# 2: nom fichier csv contenant les id github
+# 3: chemin destination
 
 if [ "$1" == "" ]
 then
-	echo "Erreur, manque nom fichier"
+	echo "Erreur, manque nom des dépots"
 	exit 1
 fi
-input_file=$1
+repo=$1
+
+if [ "$2" == "" ]
+then
+	echo "Erreur, manque nom fichier CSV d'entrée"
+	exit 1
+fi
+input_file=$2
 
 if ! [ -f $input_file ]; then
 	echo " -Erreur: fichier '$input_file' introuvable!"
@@ -25,39 +40,39 @@ if ! [ -f $input_file ]; then
 fi
 
 
-if [ "$2" == "" ]
+if [ "$3" == "" ]
 then
 	echo "Erreur, manque destination"
 	exit 1
 fi
-dst=$2
-mkdir -p $2
-
-
+dst=$3
+mkdir -p $3
 
 today=$(date +"%Y%m%d-%H%M")
+logfile=log_clonage_$today.csv
+echo "# log clonage Github du $today">$logfile
+
+
 dest=$dst/github_$today
 mkdir -p $dest
 
-echo "col_groupe=$col_groupe"
-
-set -x
-while IFS=";" read -ra tab
+while IFS="," read -ra tab
 do
-	echo "TOUT=${tab[@]}"
 	word=${tab[0]}
 	if ! [ "${word:0:1}" == "#" ]
 	then
+		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		gr=${tab[$col_groupe]}
 		idurn=${tab[$col_idurn]}
 		idgh=${tab[$col_idgithub]}
 		echo "clonage depot de $idurn, gr=$gr, depot=$idgh"
 		mkdir -p $dest/$gr
-		git clone git@github.com:$idgh/tp-r504.git "$dest/$gr/$idurn"
+		git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" >/dev/null
 		if [ $? != 0 ]
 		then
-			echo "ECHEC clonage de $gr,$idurn,$idgh"
-			exit 1
+			echo "ECHEC" >> $logfile
+		else
+			echo "succès" >> $logfile
 		fi
 	fi
 
