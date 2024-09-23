@@ -1,12 +1,14 @@
-# Script gitclone: manuel
+# gitclone: manuel
 
-S. Kramm - 20240923
+- S. Kramm - 20240923
+- https://github.com/skramm/utility_scripts/
 
 ## Objectif
-Ce script va réaliser un clonage d'un ensemble de dépot Github ayant tous le même nom
+Ce script va réaliser un clonage d'un ensemble de dépots Github ayant tous le même nom
 mais fait par des comptes différents (étudiants).
 
-Contexte: permettre d'avoir localement les travaux d'étudiants présent sur leur repo.
+**Contexte**:
+permettre d'avoir localement les travaux d'étudiants présent sur leur repo.
 Il faut évidemment leur IMPOSER le nom du dépot, et qu'il soit en "public".
 Pour leurs identifiant Github, ils sont par contre libres de choisir `Carotte23` ou `Superman56`...
 
@@ -20,12 +22,18 @@ leur identifiant universitaire (qui est utilisé ici).
 $ gitclone nomdepot inputfile [outputfolder]
 ```
 - `nomdepot`: nom des dépots Github
-- `inputfile`: nom du fichier CSV d'entrée contenant les id github ainsi que les identifiants
+- `inputfile`: nom du fichier CSV d'entrée contenant les identifiants Github ainsi que les noms ou identifiants universitaires
 - `outputfolder`: nom du dossier de sortie.
 Peut être absent, les clones seront créés dans le dossier courant.
 
-Ceci va créer dans le dossier `outputfolder` un dossier `github_AAAAMMJJ_HHMM` contenant les clones
-des dépots, en se limitant à une profondeur de 1 (option `--depth` de git clone).
+Ceci va créer dans le dossier `outputfolder` un dossier `github_AAAAMMJJ_HHMM` contenant un dossier par groupe, et dans lequel on retrouvera les clones des dépots, en se limitant à une profondeur de 1 (option `--depth` de git clone).
+
+Les index donnant le numéro de colonne dans le fichier CSV d'entrée sont pour l'instant codés en dur dans le script.
+Voir les variables
+`col_groupe`, `col_idgithub`,`col_idurn`.
+
+Un fichier log `log_clonage_AAAAMMJJ_HHMM.csv` est automatiquemnt crée dans le dossier courant, et permet d'avoir une visualisation des erreurs.
+
 
 # Notes:
 

@@ -14,6 +14,9 @@ col_groupe=5
 col_idgithub=9
 col_idurn=8
 
+# for a future switch
+#mode=https
+mode=git
 
 # args:
 # 1: nom dépot
@@ -72,14 +75,18 @@ do
 	if ! [ "${word:0:1}" == "#" ]
 	then
 		((c_li+=1))
-		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		gr=${tab[$col_groupe]}
 		idurn=${tab[$col_idurn]}
 		idgh=${tab[$col_idgithub]}
+		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => "
 		mkdir -p $dest/$gr
-#		git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
-		whoami 1>/dev/null 2>/dev/null
+		if [ $mode == https ]
+		then
+			git clone https://github.com/$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+		else
+			git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+		fi
 		if [ $? != 0 ]
 		then
 			((c_err+=1))
