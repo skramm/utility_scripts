@@ -4,58 +4,75 @@ set +x
 # 1: name of input archive file, as downloaded from Moodle
 # 2: name of pdf file the is (supposed to be) in the file
 
-# The archive file is assumed to decompress and generated 1 folder per student
-# inside of each folder, it is assumed to be a pdf file holding filled forms
-# This script will move the strings in each file to a nice table
+# The archive file is assumed to decompress and generate 1 folder per student.
+# Inside of each folder, it is assumed to be a pdf file holding filled forms.
+# This script will move the strings in each file to a csv nice table.
 
 # This relies on pdfkt, that can output the fields content:
 # pdftk file.pdf dump_data_fields > file.txt
 
+# TODO: handle when no FieldValue string (and no FieldName)
 
+# TODO: change name handling. No issues when first name or last name has spaces.
+# Just get both, and replace spaces with '_', and use that in file name 
 
-c=0
-outfile=out.csv
 logfile=pdfforms2table.log
+outfile=pdfforms2table.csv
 
-if [ -f $outfile ]; then rm $outfile; fi
 if [ -f $logfile ]; then rm $logfile; fi
-
 mkdir -p /tmp/pdfforms2table/
 
 
 #--------------------------------------------
-function reset()
+function eraseFile()
 {
-	echo "reset c=$c fname=-$fname-"
-	if ! [ "$fname" = "" ]
+	if [ -f "$1" ]
 	then
-		((c+=1))
-		echo "$c;$fname;$fvalue" >>$outfile
+		rm "$1"
 	fi
 }
 #--------------------------------------------
-function processpdf()
+function reset()
 {
-while read IN
-do
-	line=(${IN//:/ })
-	echo "line 0=${line[0]} line 1=${line[1]}"
-	if [ "${line[0]}" = "---" ]
+#	echo "*** reset c=$c fname=-$fname- fvalue=-$fvalue-"
+	if ! [ "$fvalue" = "" ]
 	then
-		reset
-	else
-		if [ "${line[0]}" = "FieldName:" ]
+		((c+=1))
+		if [ $c2 = 0 ]
 		then
-			fname=${line[1]}
+			echo "$c;$fname;$fvalue" >>/tmp/pdfforms2table/out_$nameL.csv
+		else
+			echo "$fvalue" >>/tmp/pdfforms2table/out_$nameL.csv
 		fi
-		if [ "${line[0]}" = "FieldValue:" ]
-		then
-			fvalue=${line[1]}
-		fi
-		echo "fname=$fname fvalue=$fvalue"
+		fname=
+		fvalue=
 	fi
-	
-done < /tmp/pdfforms2table/out.txt
+}
+#--------------------------------------------
+function processData()
+{
+	eraseFile /tmp/pdfforms2table/out_$nameL.csv
+	fn=$1
+	while read IN
+	do
+		line=(${IN//:/ })
+#		echo "line 0=-${line[0]}- line 1=-${line[1]}-"
+		if [ "${line[0]}" = "---" ]
+		then
+			reset
+		else
+			if [ "${line[0]}" = "FieldName" ]
+			then
+				fname=${line[1]}
+			fi
+			if [ "${line[0]}" = "FieldValue" ]
+			then
+				fvalue=${line[1]}
+			fi
+#			echo "fname=$fname fvalue=$fvalue"
+		fi
+		
+	done < $fn
 }
 #--------------------------------------------
 function splitstr()
@@ -79,16 +96,23 @@ then
 fi
 pdffn=$2
 
-
 if [ ! -f "$1" ]
 then
 	echo "error, can't find file $1"
 	exit 1
 fi
 
+echo " -Step 1: unzipping"
+unzip -o "$archfn" 1>/tmp/pdfforms2table/unzip.stdout 2>/tmp/pdfforms2table/unzip.stderr
+rv=$?
+if [ $rv != 0 ]
+then
+	echo "Error: unzip program failed with value $rv, exiting..."
+	exit 2
+fi
 
-unzip "$fn"
-
+echo " -Step 2: iterating on folders"
+c2=0
 for d in ./*/
 do
 	d=${d%*/}      # remove the trailing "/"
@@ -99,16 +123,33 @@ do
 	splitstr "${tab[0]}" " "
 	nameF=${tab[0]}
 	nameL=${tab[1]}
+	if [ $c2 = 0 ]
+	then
+		set_names=";;$nameL"
+		set_files="/tmp/pdfforms2table/out_$nameL.csv"
+	fi
 	if [ ! -f "$dir/$pdffn" ]
 	then
 		echo "File $pdffn missing for $nameF $nameL">>$logfile
 	else
-		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out.txt
-		processpdf
+		c=0
+		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out_$nameL.txt
+		processData /tmp/pdfforms2table/out_$nameL.txt
+		if [ $c2 != 0 ]
+		then
+			set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
+			set_names="$set_names;$nameL"
+		fi
 	fi
-	
+	((c2+=1))
 done
 
+#echo "set_files=$set_files"
+#echo "set_names=$set_names"
+
+echo " -Step 3: generating csv file"
+echo "$set_names" >$outfile
+paste -d ";" $set_files >>$outfile
 
 
 
