@@ -1,3 +1,4 @@
+set +x
 # WIP
 # input args
 # 1: name of input archive file, as downloaded from Moodle
@@ -33,9 +34,8 @@ function reset()
 	fi
 }
 #--------------------------------------------
-function readfile()
+function processpdf()
 {
-fn=$1
 while read IN
 do
 	line=(${IN//:/ })
@@ -58,15 +58,6 @@ do
 done < /tmp/pdfforms2table/out.txt
 }
 #--------------------------------------------
-function split2()
-{
-	echo "arg1=$1 arg2=$2"
-	str=$1
-	char=$2
-	echo "char=$char"
-	tab=(${str//char/ })
-}
-
 function splitstr()
 {
 	IFS=$2 read -ra tab <<< "$1"
@@ -86,7 +77,7 @@ then
 	echo "error, missing pdf file name"
 	exit 1
 fi
-pdffn=$1
+pdffn=$2
 
 
 if [ ! -f "$1" ]
@@ -94,28 +85,25 @@ then
 	echo "error, can't find file $1"
 	exit 1
 fi
-fn=$1
 
 
-rm logfile
-
-#unzip "$fn"
+unzip "$fn"
 
 for d in ./*/
 do
 	d=${d%*/}      # remove the trailing "/"
 	dir="${d##*/}"    # print everything after the final "/"
-#	echo "Processing $dir">>$logfile
+	echo "Processing $dir">>$logfile
 	splitstr "$dir" _
 #	echo "A: tab[0]=-${tab[0]}- tab[1]=-${tab[1]-}" 
 	splitstr "${tab[0]}" " "
 	nameF=${tab[0]}
 	nameL=${tab[1]}
-	if [ ! -f "$dir/$fn" ]
+	if [ ! -f "$dir/$pdffn" ]
 	then
-		echo "File missing for $nameF $nameL">>$logfile
+		echo "File $pdffn missing for $nameF $nameL">>$logfile
 	else
-		pdftk "$dir/$fn" dump_data_fields > /tmp/pdfforms2table/out.txt
+		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out.txt
 		processpdf
 	fi
 	
