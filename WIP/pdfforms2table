@@ -1,0 +1,126 @@
+# WIP
+# input args
+# 1: name of input archive file, as downloaded from Moodle
+# 2: name of pdf file the is (supposed to be) in the file
+
+# The archive file is assumed to decompress and generated 1 folder per student
+# inside of each folder, it is assumed to be a pdf file holding filled forms
+# This script will move the strings in each file to a nice table
+
+# This relies on pdfkt, that can output the fields content:
+# pdftk file.pdf dump_data_fields > file.txt
+
+
+
+c=0
+outfile=out.csv
+logfile=pdfforms2table.log
+
+if [ -f $outfile ]; then rm $outfile; fi
+if [ -f $logfile ]; then rm $logfile; fi
+
+mkdir -p /tmp/pdfforms2table/
+
+
+#--------------------------------------------
+function reset()
+{
+	echo "reset c=$c fname=-$fname-"
+	if ! [ "$fname" = "" ]
+	then
+		((c+=1))
+		echo "$c;$fname;$fvalue" >>$outfile
+	fi
+}
+#--------------------------------------------
+function readfile()
+{
+fn=$1
+while read IN
+do
+	line=(${IN//:/ })
+	echo "line 0=${line[0]} line 1=${line[1]}"
+	if [ "${line[0]}" = "---" ]
+	then
+		reset
+	else
+		if [ "${line[0]}" = "FieldName:" ]
+		then
+			fname=${line[1]}
+		fi
+		if [ "${line[0]}" = "FieldValue:" ]
+		then
+			fvalue=${line[1]}
+		fi
+		echo "fname=$fname fvalue=$fvalue"
+	fi
+	
+done < /tmp/pdfforms2table/out.txt
+}
+#--------------------------------------------
+function split2()
+{
+	echo "arg1=$1 arg2=$2"
+	str=$1
+	char=$2
+	echo "char=$char"
+	tab=(${str//char/ })
+}
+
+function splitstr()
+{
+	IFS=$2 read -ra tab <<< "$1"
+}
+#--------------------------------------------
+# program start
+
+if [ -z "$1" ]
+then
+	echo "error, missing archive file name"
+	exit 1
+fi
+archfn=$1
+
+if [ -z "$2" ]
+then
+	echo "error, missing pdf file name"
+	exit 1
+fi
+pdffn=$1
+
+
+if [ ! -f "$1" ]
+then
+	echo "error, can't find file $1"
+	exit 1
+fi
+fn=$1
+
+
+rm logfile
+
+#unzip "$fn"
+
+for d in ./*/
+do
+	d=${d%*/}      # remove the trailing "/"
+	dir="${d##*/}"    # print everything after the final "/"
+#	echo "Processing $dir">>$logfile
+	splitstr "$dir" _
+#	echo "A: tab[0]=-${tab[0]}- tab[1]=-${tab[1]-}" 
+	splitstr "${tab[0]}" " "
+	nameF=${tab[0]}
+	nameL=${tab[1]}
+	if [ ! -f "$dir/$fn" ]
+	then
+		echo "File missing for $nameF $nameL">>$logfile
+	else
+		pdftk "$dir/$fn" dump_data_fields > /tmp/pdfforms2table/out.txt
+		processpdf
+	fi
+	
+done
+
+
+
+
