@@ -1,0 +1,75 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,left=15mm, right=15mm, top=18mm, bottom=18mm]{geometry}
+
+\usepackage{hyperref}
+\usepackage{palatino}
+
+\usepackage{enumitem}
+\setenumerate[1]{ %
+	itemsep=1ex
+	,parsep=0ex
+	,topsep=0ex
+	,leftmargin=2em
+	,itemindent=2em
+	,label=Q\thesection.\arabic* -
+	,ref=Q\thesection.\arabic*
+}
+
+
+\newcommand{\champrep}[2]{\begin{Form} %
+\TextField[height=1.5em,width=#1]{#2} %
+\end{Form} } 
+
+
+
+\title{Demo}
+
+\begin{document}
+\maketitle
+
+
+\fbox{\begin{minipage}{0.95\textwidth}
+{\bf Consignes}:
+\begin{itemize}
+\item Ouvrez ce document dans le lecteur pdf installé sur la machine (PAS dans le navigateur).
+\item Répondez aux questions en tapant votre réponse dans les champs du document.
+\item Sauvegarder le fichier en {\tt TP-test.pdf}.
+\item Déposer le fichier sur l'espace de cours dédié..
+\end{itemize}
+\end{minipage}
+}
+
+\section{Section 1}
+
+\begin{enumerate}
+\item blah blah blah
+
+\champrep{8cm}{\theenumi}
+
+\item blih blih blih
+
+\champrep{12cm}{\theenumi}
+
+\item bloh bloh bloh
+
+\champrep{6cm}{\theenumi}
+
+\end{enumerate}
+
+
+\section{Section suivante}
+
+\begin{enumerate}
+\item blah blah blah
+
+\champrep{5cm}{\theenumi}
+
+\item blih blih blih
+
+\champrep{8cm}{\theenumi}
+
+\end{enumerate}
+
+\end{document}
