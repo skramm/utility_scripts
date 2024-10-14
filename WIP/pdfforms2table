@@ -80,12 +80,21 @@ function splitstr()
 	IFS=$2 read -ra tab <<< "$1"
 }
 #--------------------------------------------
+function usage()
+{
+	echo "pdfforms2table <archive> <pdffile>"
+	echo "A utility to extract student works from a Moodle downloaded archive"
+	echo "holding a pdf file with filled form fields and assemble these into a single tabular CSV file"
+	echo "manual: https://github.com/skramm/utility_scripts"
+}
+
+#--------------------------------------------
 # program start
 
-if [ -z "$1" ]
+if [ -z "$1" ] || [ "$1" = "-h" ]
 then
-	echo "error, missing archive file name"
-	exit 1
+	usage
+	exit 0
 fi
 archfn=$1
 
