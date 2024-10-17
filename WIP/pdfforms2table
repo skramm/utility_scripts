@@ -1,4 +1,3 @@
-set +x
 # WIP
 # input args
 # 1: name of input archive file, as downloaded from Moodle
@@ -13,7 +12,7 @@ set +x
 
 # TODO: handle when no FieldValue string (and no FieldName)
 
-# TODO: change name handling. No issues when first name or last name has spaces.
+# TODO: change name handling. Now issues when first name or last name has spaces.
 # Just get both, and replace spaces with '_', and use that in file name 
 
 logfile=pdfforms2table.log
@@ -34,42 +33,61 @@ function eraseFile()
 #--------------------------------------------
 function reset()
 {
-#	echo "*** reset c=$c fname=-$fname- fvalue=-$fvalue-"
+	echo "*** reset c=$c fname=-$fname- fvalue=-$fvalue-"
+	outcsv=/tmp/pdfforms2table/out_$nameL.csv
+	echo "outcsv=$outcsv"
 	if ! [ "$fvalue" = "" ]
 	then
 		((c+=1))
 		if [ $c2 = 0 ]
 		then
-			echo "$c;$fname;$fvalue" >>/tmp/pdfforms2table/out_$nameL.csv
+			echo "$c;$fname;$fvalue" >>$outcsv
 		else
-			echo "$fvalue" >>/tmp/pdfforms2table/out_$nameL.csv
+			echo "$fvalue" >>$outcsv
 		fi
 		fname=
 		fvalue=
 	fi
 }
+
+#--------------------------------------------
+function splitString()
+{
+	str=$1
+	IFS=':' read -ra arr <<<"$str"
+	echo "splitString: str=-$str- arr 0=-${arr[0]}- arr 1=-${arr[1]}-"
+
+# This
+#		arr=(${IN//:/ })
+# was used before, but appears to have strange behavior
+# example:
+# IN="FieldValue: * * * * * date&gt;cron-date.txt"
+# TODO: investigate this
+# source: https://stackoverflow.com/a/5257398/193789
+}
 #--------------------------------------------
 function processData()
 {
+	echo "eraseFile /tmp/pdfforms2table/out_$nameL.csv"
 	eraseFile /tmp/pdfforms2table/out_$nameL.csv
 	fn=$1
+	echo "------------processData fn=$fn"
 	while read IN
 	do
-		line=(${IN//:/ })
-#		echo "line 0=-${line[0]}- line 1=-${line[1]}-"
-		if [ "${line[0]}" = "---" ]
+		splitString $IN
+		if [ "${arr[0]}" = "---" ]
 		then
 			reset
 		else
-			if [ "${line[0]}" = "FieldName" ]
+			if [ "${arr[0]}" = "FieldName" ]
 			then
-				fname=${line[1]}
+				fname=${arr[1]}
 			fi
-			if [ "${line[0]}" = "FieldValue" ]
+			if [ "${arr[0]}" = "FieldValue" ]
 			then
-				fvalue=${line[1]}
+				fvalue=${arr[1]}
 			fi
-#			echo "fname=$fname fvalue=$fvalue"
+			echo "fname=$fname fvalue=$fvalue"
 		fi
 		
 	done < $fn
@@ -127,34 +145,34 @@ do
 	d=${d%*/}      # remove the trailing "/"
 	dir="${d##*/}"    # print everything after the final "/"
 	echo "Processing $dir">>$logfile
+	echo "Processing $dir"
 	splitstr "$dir" _
 #	echo "A: tab[0]=-${tab[0]}- tab[1]=-${tab[1]-}" 
 	splitstr "${tab[0]}" " "
 	nameF=${tab[0]}
 	nameL=${tab[1]}
-	if [ $c2 = 0 ]
-	then
-		set_names=";;$nameL"
-		set_files="/tmp/pdfforms2table/out_$nameL.csv"
-	fi
+	echo "nameL=$nameL"
 	if [ ! -f "$dir/$pdffn" ]
 	then
 		echo "File $pdffn missing for $nameF $nameL">>$logfile
 	else
+		if [ $c2 = 0 ]
+		then
+			set_names=";;$nameL"
+			set_files="/tmp/pdfforms2table/out_$nameL.csv"
+		else
+			set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
+			set_names="$set_names;$nameL"		
+		fi
 		c=0
 		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out_$nameL.txt
 		processData /tmp/pdfforms2table/out_$nameL.txt
-		if [ $c2 != 0 ]
-		then
-			set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
-			set_names="$set_names;$nameL"
-		fi
+		((c2+=1))
 	fi
-	((c2+=1))
 done
 
-#echo "set_files=$set_files"
-#echo "set_names=$set_names"
+echo "set_files=$set_files"
+echo "set_names=$set_names"
 
 echo " -Step 3: generating csv file"
 echo "$set_names" >$outfile
