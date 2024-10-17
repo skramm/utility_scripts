@@ -127,6 +127,7 @@ function replaceEntities()
 {
 	in=$1
 	out=$2
+	echo "arg3=$3"
 	cp $in $out
 	sed --in-place 's/&gt;/>/g' $out
 	sed --in-place 's/&apos;/'\''/g' $out
@@ -135,9 +136,14 @@ function replaceEntities()
 	sed --in-place 's/&#233;/é/g' $out
 	sed --in-place 's/&#224;/à/g' $out
 	sed --in-place 's/&#192;/À/g' $out
-	grep "&#" $out
+	grep "&#" $out >/tmp/pdfforms2table/illegalchars_$3.txt
 	rv=$?
 	echo "grep rv=$rv"
+
+	if [ $rv = 1 ]   # no use to keep that file, its empty	
+	then
+		rm /tmp/pdfforms2table/illegalchars_$3.txt
+	fi
 }
 #--------------------------------------------
 # program start
@@ -184,34 +190,35 @@ do
 	splitstr "${tab[0]}" " "
 	nameF=${tab[0]}
 	nameL=${tab[1]}
-	echo "nameL=$nameL"
+	echo "nameFL=$nameF_$nameL"
 	if [ ! -f "$dir/$pdffn" ]
 	then
 		echo "File $pdffn missing for $nameF $nameL">>$logfile
 	else
-		if [ $c2 = 0 ]
-		then
-			set_idx=";;1"
-			set_names=";;$nameL"
-			set_files="/tmp/pdfforms2table/out_$nameL.csv"
-		else
-			c_idx=$((c2+1))
-			set_idx="$set_idx;$c_idx"
-			set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
-			set_names="$set_names;$nameL"
-		fi
 		c=0
 		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out_$nameL.txt
-		replaceEntities /tmp/pdfforms2table/out_$nameL.txt /tmp/pdfforms2table/out2_$nameL.txt
+		replaceEntities /tmp/pdfforms2table/out_$nameL.txt /tmp/pdfforms2table/out2_$nameL.txt "$nameF_$nameL"
 		if [ $rv = 0 ]
 		then
 			echo "Found illegal character in file !">>$logfile
 		else
+			if [ $c2 = 0 ]
+			then
+				set_idx=";;1"
+				set_names=";;$nameL"
+				set_files="/tmp/pdfforms2table/out_$nameL.csv"
+			else
+				c_idx=$((c2+1))
+				set_idx="$set_idx;$c_idx"
+				set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
+				set_names="$set_names;$nameL"
+			fi
 			processData /tmp/pdfforms2table/out2_$nameL.txt
 			((c2+=1))
 		fi
 	fi
 done
+
 echo "set_idx=$set_idx"
 echo "set_files=$set_files"
 echo "set_names=$set_names"
