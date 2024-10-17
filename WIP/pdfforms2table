@@ -35,7 +35,7 @@ function reset()
 {
 	echo "*** reset c=$c fname=-$fname- fvalue=-$fvalue-"
 	outcsv=/tmp/pdfforms2table/out_$nameL.csv
-	echo "outcsv=$outcsv"
+#	echo "outcsv=$outcsv"
 	if ! [ "$fvalue" = "" ]
 	then
 		((c+=1))
@@ -51,11 +51,22 @@ function reset()
 }
 
 #--------------------------------------------
+# split string received as argument into an array, delimiter = ":"
 function splitString()
 {
+#IN="$1"
+#echo "IN=$IN"
+#set -- "$IN" 
+#IFS=":"; declare -a arr=($*) 
+#echo "ALL:-${arr[@]}-" 
+#echo "0:-${arr[0]}-" 
+#echo "1:-${arr[1]}-" 
+
+# this:
 	str=$1
 	IFS=':' read -ra arr <<<"$str"
-	echo "splitString: str=-$str- arr 0=-${arr[0]}- arr 1=-${arr[1]}-"
+#	echo "splitString: str=-$str- arr 0=-${arr[0]}- arr 1=-${arr[1]}-"
+# does not work, apparently because it is embedded into another "read" command
 
 # This
 #		arr=(${IN//:/ })
@@ -68,26 +79,32 @@ function splitString()
 #--------------------------------------------
 function processData()
 {
-	echo "eraseFile /tmp/pdfforms2table/out_$nameL.csv"
 	eraseFile /tmp/pdfforms2table/out_$nameL.csv
+	fname=
+	fvalue=
 	fn=$1
 	echo "------------processData fn=$fn"
 	while read IN
 	do
-		splitString $IN
+		splitString "$IN"
 		if [ "${arr[0]}" = "---" ]
 		then
 			reset
 		else
+			echo "processData(2): current field=${arr[0]}"
 			if [ "${arr[0]}" = "FieldName" ]
 			then
-				fname=${arr[1]}
+				fname="${arr[1]}"
 			fi
 			if [ "${arr[0]}" = "FieldValue" ]
 			then
-				fvalue=${arr[1]}
+#				test needed because sometimes there are 2 lines for FieldValue, so the second erases the first one
+				if [ ${#fvalue} = 0 ]
+				then
+					fvalue="${arr[1]}"
+				fi
 			fi
-			echo "fname=$fname fvalue=$fvalue"
+			echo "processData(3): fname=$fname fvalue=$fvalue"
 		fi
 		
 	done < $fn
@@ -175,8 +192,13 @@ echo "set_files=$set_files"
 echo "set_names=$set_names"
 
 echo " -Step 3: generating csv file"
-echo "$set_names" >$outfile
-paste -d ";" $set_files >>$outfile
+echo "$set_names" >/tmp/pdfforms2table/out.csv
+paste -d ";" $set_files >>/tmp/pdfforms2table/out.csv
+
+sed --in-place 's/&gt;/>/g' /tmp/pdfforms2table/out.csv
+sed --in-place 's/&apos;/'\''/g' /tmp/pdfforms2table/out.csv
+
+cp /tmp/pdfforms2table/out.csv $outfile
 
 
 
