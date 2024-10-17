@@ -91,7 +91,7 @@ function processData()
 		then
 			reset
 		else
-			echo "processData(2): current field=${arr[0]}"
+#			echo "processData(2): current field=${arr[0]}"
 			if [ "${arr[0]}" = "FieldName" ]
 			then
 				fname="${arr[1]}"
@@ -104,7 +104,7 @@ function processData()
 					fvalue="${arr[1]}"
 				fi
 			fi
-			echo "processData(3): fname=$fname fvalue=$fvalue"
+#			echo "processData(3): fname=$fname fvalue=$fvalue"
 		fi
 		
 	done < $fn
@@ -122,7 +122,23 @@ function usage()
 	echo "holding a pdf file with filled form fields and assemble these into a single tabular CSV file"
 	echo "manual: https://github.com/skramm/utility_scripts"
 }
-
+#--------------------------------------------
+function replaceEntities()
+{
+	in=$1
+	out=$2
+	cp $in $out
+	sed --in-place 's/&gt;/>/g' $out
+	sed --in-place 's/&apos;/'\''/g' $out
+	sed --in-place 's/&quot;/'\"'/g' $out
+	sed --in-place 's/&#232;/è/g' $out
+	sed --in-place 's/&#233;/é/g' $out
+	sed --in-place 's/&#224;/à/g' $out
+	sed --in-place 's/&#192;/À/g' $out
+	grep "&#" $out
+	rv=$?
+	echo "grep rv=$rv"
+}
 #--------------------------------------------
 # program start
 
@@ -182,12 +198,18 @@ do
 			c_idx=$((c2+1))
 			set_idx="$set_idx;$c_idx"
 			set_files="$set_files /tmp/pdfforms2table/out_$nameL.csv"
-			set_names="$set_names;$nameL"		
+			set_names="$set_names;$nameL"
 		fi
 		c=0
 		pdftk "$dir/$pdffn" dump_data_fields > /tmp/pdfforms2table/out_$nameL.txt
-		processData /tmp/pdfforms2table/out_$nameL.txt
-		((c2+=1))
+		replaceEntities /tmp/pdfforms2table/out_$nameL.txt /tmp/pdfforms2table/out2_$nameL.txt
+		if [ $rv = 0 ]
+		then
+			echo "Found illegal character in file !">>$logfile
+		else
+			processData /tmp/pdfforms2table/out2_$nameL.txt
+			((c2+=1))
+		fi
 	fi
 done
 echo "set_idx=$set_idx"
@@ -200,15 +222,6 @@ echo "$set_idx" >$out2
 echo "$set_names" >>$out2
 paste -d ";" $set_files >>$out2
 
-sed --in-place 's/&gt;/>/g' $out2
-sed --in-place 's/&apos;/'\''/g' $out2
-sed --in-place 's/&quot;/'\"'/g' $out2
-sed --in-place 's/&#232;/è/g' $out2
-sed --in-place 's/&#233;/é/g' $out2
-sed --in-place 's/&#224;/à/g' $out2
-sed --in-place 's/&#192;/À/g' $out2
-
 cp $out2 $outfile
-
 
 
