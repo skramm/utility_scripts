@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Doc: voir le fichier gitclone.md
+
+# usage:
+# $ gitpull folder
+# -folder: dossier où se trouve les repo git
+
+function usage()
+{
+	echo "gitpull [folder]"
+	echo "If no folder is given, current folder will be used"
+	exit 0
+}
+
+if [ "$1" == "-h" ]
+then
+	usage
+fi
+
+
+folder=.
+if [ "$1" != "" ]
+then
+	folder="$1"
+fi
+
+today=$(date +"%Y%m%d-%H%M")
+logfile=log_clonage_$today.csv
+echo "# log pull repo Github du $today">$logfile
+
+
+for f1 in $folder*/
+do
+	echo "pull on $f1"
+	pushd "$f1" >/dev/null
+	echo "pwd1=$(pwd)"
+	for f2 in */
+	do
+		pushd "$f1/$f2" >/dev/null
+		echo "  pwd2=$(pwd)"
+		git pull
+		rv=$?
+		if [ $rv == 0 ]
+		then
+			echo "repo: $(pwd) => success">>$logfile
+		else
+			echo "repo: $(pwd) => failure">>$logfile
+		fi
+		popd >/dev/null
+	done
+
+	popd >/dev/null
+done
+
+

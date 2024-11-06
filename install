@@ -5,12 +5,12 @@ inst()
 	cp $1 /usr/local/bin/
 }
 
-inst show-img-usage
+inst prod/show-img-usage
 inst show-git-branch-diff
-inst process_regex
+#inst process_regex
 inst gift2woo
-inst gitclone
+inst prod/gitclone
+inst prod/gitpull
 inst hw
-
 
 

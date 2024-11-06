@@ -79,7 +79,7 @@ do
 		idurn=${tab[$col_idurn]}
 		idgh=${tab[$col_idgithub]}
 		echo -n "$gr;$idurn;$idgh;" >> $logfile
-		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => "
+		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => " >> $logfile
 		mkdir -p $dest/$gr
 		if [ $mode == https ]
 		then
