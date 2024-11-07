@@ -71,6 +71,8 @@ echo "# log clonage Github du $today">$logfile
 dest=$dst/github_$today
 mkdir -p $dest
 
+echo "Clonage Github du $today, dest=$dest"
+
 # compteurs
 c_err=0
 c_ok=0
@@ -87,6 +89,7 @@ do
 		idgh=${tab[$col_idgithub]}
 		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => " >> $logfile
+		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => "
 		mkdir -p $dest/$gr
 		if [ $mode == https ]
 		then
