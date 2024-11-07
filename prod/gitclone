@@ -4,10 +4,13 @@
 
 # usage:
 # $ gitclone nomdepot inputfile outputfolder
-# -nomdepot: nom du dépot Github
+# -nomdepot: nom du dépot (Github ou Gitlab)
 # -inputfile: nom du fichier CSV d'entrée contenant les id github ainsi que les identifiants
 # -outputfolder: nom du dossier de sortie (peut être `.` pour le dossier courant).
 
+
+# FQDN du repo (valeur par défaut)
+repourl=github.com
 
 # parametrage colonnes fichier CSV d'entrée (commence à index 0)
 col_groupe=5
@@ -49,6 +52,10 @@ if ! [ -f $input_file ]; then
 	exit 2
 fi
 
+if [ -f gitclone.conf ]; then
+	source gitclone.conf
+fi
+
 dst=.
 if ! [ "$3" == "" ]
 then
@@ -83,9 +90,9 @@ do
 		mkdir -p $dest/$gr
 		if [ $mode == https ]
 		then
-			git clone https://github.com/$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+			git clone https://$repourl/$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
 		else
-			git clone --depth 1 git@github.com:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+			git clone --depth 1 git@$repourl:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
 		fi
 		if [ $? != 0 ]
 		then

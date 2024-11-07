@@ -27,7 +27,7 @@ fi
 
 today=$(date +"%Y%m%d-%H%M")
 logfile=log_clonage_$today.csv
-echo "# log pull repo Github du $today">$logfile
+echo "# log pull repo git du $today">$logfile
 
 
 for f1 in $folder*/
