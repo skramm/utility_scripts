@@ -1,0 +1,10 @@
+# get the unique ID given by MAC ethernet address
+if=eno2
+
+m1=$(ip a show dev $if | grep link/ether | awk '{print $2}')
+
+echo "m1=$m1"
+IFS=':'; read -a tab <<< $m1
+
+m2="${tab[3]}${tab[4]}${tab[5]}"
+echo "m2=$m2"
