@@ -95,7 +95,7 @@ do
 		then
 			git clone https://$repourl/$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
 		else
-			git clone --depth 1 git@$repourl:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
+			git clone git@$repourl:$idgh/$repo.git "$dest/$gr/$idurn" 1>/dev/null 2>/dev/null
 		fi
 		if [ $? != 0 ]
 		then
