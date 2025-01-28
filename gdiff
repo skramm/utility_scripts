@@ -1,0 +1,30 @@
+
+cmd()
+{
+git branch -l | grep "*"
+}
+
+if [ "$1" = "" ]
+then
+	echo "usage: gitdiff [branch]"
+	echo " => will show a nicely colored html diff of [branch] vs. current branch"
+	echo " red: [branch], green: current branch"
+	exit 1
+fi
+
+git branch -l | grep "$1" > /dev/null
+if ! [ $? = 0 ]
+then
+	echo "Error, current repo does not hold a branch named '$1'"
+	echo "-available branches:"
+	git branch -l
+	exit 1
+fi
+
+echo "<div><ul>
+<li style='color:red;'>branch $1</li>
+<li style='color:green;'>branch $(cmd)</li></ul></div>" > tmp_diff.html
+
+git diff "$1" | colordiff | aha --word-wrap >> tmp_diff.html
+xdg-open tmp_diff.html
+
