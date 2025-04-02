@@ -7,12 +7,14 @@ Soit n étudiants qui déposent sur Moodle un fichier CSV dont le gabarit leur a
 
 Par exemple, Alice va restituer un fichier comme ceci:
 ```
+# ici des commentaires
 Q1;rep A
 Q2;rep B
 Q3;rep C
 ```
 Un autre étudiant "Bob" va fournir un autre fichier:
 ```
+# ici des commentaires
 Q1;rep X
 Q2;rep Y
 Q3;rep Z
