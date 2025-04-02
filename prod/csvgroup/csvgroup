@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# WIP !!!
+
+
+# arg: zip file from Moodle
+
+# Extract student name.
+# Once extracted the Moodle-produced zip file, the folders name have the form
+# FIRSTNAME LASTNAME_9911709_assignsubmission_file
+# This function splits that string on the '_' character
+function getName
+{
+	IFS='_' read -ra ADDR <<< "$1"
+	n0="${ADDR[0]}"
+#	n1="${ADDR[1]}"
+#	echo "IN=$1 NAME=$n0"
+}
+
+# Read a data file and uses it to provide the question number and
+# echoes these in output file
+function read_question
+{
+	f1="$1"
+	echo -n "NOM">../out.csv
+	IFS=';';while read -a tab
+	do
+		firstchar=${tab[0]}
+		if ! [ "${firstchar:0:1}" = "#" ] && ! [ ${#tab[0]} = 0 ]
+		then
+			echo -n ";${tab[0]---}">>../out.csv
+		fi
+	done < "$f1"
+	echo "">>../out.csv
+
+}
+
+function process_file
+{
+	f1="$1"
+#	echo "f1=$f1"
+	getName ${f1:2}
+	IFS=';';while read -a tab
+	do
+		firstchar=${tab[0]}
+		if ! [ "${firstchar:0:1}" = "#" ] && ! [ ${#tab[0]} = 0 ]
+		then
+			if [ $first = true ]
+			then
+				echo -n "$n0">>../out.csv
+				first=false
+			fi
+			echo -n ";${tab[1]}">>../out.csv
+		fi
+	done < "$f1"
+	first=true
+	echo "">>../out.csv
+}
+
+#----------------------------------------------------
+# START
+if [ "$1" = "" ]
+then
+	echo "-Error: missing input filename, exit"
+	exit 1
+fi
+
+if ! [ -f "$1" ]
+then
+	echo "-Error: file '$1' missing, exit!"
+	exit 2
+fi
+echo "-Processing file $1"
+
+# extract files in some temp folder
+mkdir -p /tmp/csvgroup/unzip
+rm -r /tmp/csvgroup/unzip/*
+unzip "$1" -d /tmp/csvgroup/unzip >/dev/null
+
+pushd /tmp/csvgroup/unzip>/dev/null
+
+find . -type f -iname "*.csv" >/tmp/csvgroup/liste
+
+# extract question numbers from first file
+fq=$(head -1 /tmp/csvgroup/liste)
+read_question "$fq"
+
+first=true
+IFS=$'\n';for a in $(cat /tmp/csvgroup/liste)
+do
+	process_file "$a"
+done
+
+today=$(date +"%Y%m%d-%H%M")
+outfile=csvgroup_$today.csv
+echo "-done, check outputfile $outfile"
+
+popd >/dev/null
+cp /tmp/csvgroup/out.csv $outfile
+
+
+
