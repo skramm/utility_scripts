@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # WIP
 # input args
 # 1: name of input archive file, as downloaded from Moodle
