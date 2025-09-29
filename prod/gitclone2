@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Doc: voir le fichier gitclone2.md
+
+# usage:
+# $ gitclone2 inputfile [outputfolder]
+# -inputfile: nom du fichier CSV d'entrée contenant les URL et groupes
+# -outputfolder: nom du dossier de sortie (peut être `.` pour le dossier courant).
+
+
+# parametrage colonnes fichier CSV d'entrée (commence à index 0)
+col_groupe=0
+col_repo=1
+
+function usage()
+{
+	echo "gitclone2 inputfile [outputfolder]"
+	exit 1
+}
+
+if [ "$1" == "" ]
+then
+	echo "Erreur, manque nom fichier CSV d'entrée"
+	usage
+fi
+input_file=$1
+
+if ! [ -f $input_file ]; then
+	echo " -Erreur: fichier '$input_file' introuvable!"
+	exit 2
+fi
+
+if [ -f gitclone2.conf ]; then
+	source gitclone2.conf
+fi
+
+
+today=$(date +"%Y%m%d-%H%M")
+logfile=log_clonage2_$today.csv
+echo "# log clonage Github du $today">$logfile
+
+dest=github_$today
+mkdir -p $dest
+
+echo "Clonage Github du $today, dest=$dest"
+
+# compteurs
+c_err=0
+c_ok=0
+c_li=0
+
+while IFS=";" read -ra tab
+do
+	word=${tab[0]}
+	if ! [ "${word:0:1}" == "#" ] && [ ${#word} -gt 0 ]
+	then
+		((c_li+=1))
+		gr=${tab[$col_groupe]}
+		repourl=${tab[$col_repo]}
+		echo -n "$gr;$repourl;" >> $logfile
+#		echo "repourl=$repourl"
+		IFS=":"; split1=( $repourl )
+		IFS="/"; split2=( ${split1[1]} )
+		IFS="."; split3=( ${split2[1]} )
+		name=${split2[0]}
+		repo=${split3[0]}
+		IFS=";"
+#		echo "repo=$repo name=$name"
+		echo -n " -$c_li: clonage depot '$repourl', gr=$gr' name=${name}_${repo} => " >> $logfile
+		echo -n " -$c_li: clonage depot '$repourl', gr=$gr' name=${name}_${repo} => "
+
+		mkdir -p $dest/$gr
+		pushd $dest/$gr >/dev/null
+		git clone $repourl ${name}_${repo} 1>/dev/null 2>/dev/null
+		popd >/dev/null
+		if [ $? != 0 ]
+		then
+			((c_err+=1))
+			echo "ECHEC" >> $logfile
+			echo "ECHEC"
+		else
+			((c_ok+=1))
+			echo "succès" >> $logfile
+			echo "succès"
+		fi
+	fi
+
+done < $input_file
+
+echo -e "*** bilan ***: total de $c_li lignes\n -succès:$c_ok\n -echecs:$c_err"
+
+
