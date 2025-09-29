@@ -57,15 +57,13 @@ do
 		((c_li+=1))
 		gr=${tab[$col_groupe]}
 		repourl=${tab[$col_repo]}
-		echo -n "$gr;$repourl;" >> $logfile
-#		echo "repourl=$repourl"
+#		echo -n "$gr;$repourl;" >> $logfile
 		IFS=":"; split1=( $repourl )
 		IFS="/"; split2=( ${split1[1]} )
 		IFS="."; split3=( ${split2[1]} )
 		name=${split2[0]}
 		repo=${split3[0]}
 		IFS=";"
-#		echo "repo=$repo name=$name"
 		echo -n " -$c_li: clonage depot '$repourl', gr=$gr' name=${name}_${repo} => " >> $logfile
 		echo -n " -$c_li: clonage depot '$repourl', gr=$gr' name=${name}_${repo} => "
 

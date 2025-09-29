@@ -10,6 +10,7 @@ inst show-git-branch-diff
 #inst process_regex
 inst gift2woo
 inst prod/gitclone
+inst prod/gitclone2
 inst prod/gitpull
 inst hw
 
