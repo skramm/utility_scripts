@@ -15,7 +15,10 @@ repourl=github.com
 # parametrage colonnes fichier CSV d'entrée (commence à index 0)
 col_groupe=5
 col_idgithub=9
-col_idurn=8
+col_id=8
+
+# Default field separator in input file
+sep=","
 
 # for a future switch
 #mode=https
@@ -64,28 +67,28 @@ fi
 mkdir -p $dst
 
 today=$(date +"%Y%m%d-%H%M")
-logfile=log_clonage_$today.csv
-echo "# log clonage Github du $today">$logfile
+logfile=log_clonage_${repo}_$today.csv
+echo "# log clonage Github du $today, nom depot=$repo">$logfile
 
 
-dest=$dst/github_$today
+dest=$dst/github_${repo}_${today}
 mkdir -p $dest
 
-echo "Clonage Github du $today, dest=$dest"
+echo "Clonage Github du $today, dest=$dest, depot=$repo"
 
 # compteurs
 c_err=0
 c_ok=0
 c_li=0
 
-while IFS="," read -ra tab
+while IFS=$sep read -ra tab
 do
 	word=${tab[0]}
 	if ! [ "${word:0:1}" == "#" ]
 	then
 		((c_li+=1))
 		gr=${tab[$col_groupe]}
-		idurn=${tab[$col_idurn]}
+		idurn=${tab[$col_id]}
 		idgh=${tab[$col_idgithub]}
 		echo -n "$gr;$idurn;$idgh;" >> $logfile
 		echo -n " -$c_li: clonage depot de '$idurn', gr=$gr, Id='$idgh' => " >> $logfile
@@ -112,3 +115,4 @@ do
 done < $input_file
 
 echo -e "*** bilan ***: total de $c_li lignes\n -succès:$c_ok\n -echecs:$c_err"
+
