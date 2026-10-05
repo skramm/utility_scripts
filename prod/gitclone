@@ -13,12 +13,12 @@
 repourl=github.com
 
 # parametrage colonnes fichier CSV d'entrée (commence à index 0)
-col_groupe=5
-col_idgithub=9
-col_id=8
+col_groupe=0
+col_idgithub=2
+col_id=1
 
 # Default field separator in input file
-sep=","
+sep=";"
 
 # for a future switch
 #mode=https
@@ -56,6 +56,7 @@ if ! [ -f $input_file ]; then
 fi
 
 if [ -f gitclone.conf ]; then
+	echo "Lecture index de colonne dans gitclone.conf"
 	source gitclone.conf
 fi
 
@@ -65,6 +66,9 @@ then
 	dst=$3
 fi
 mkdir -p $dst
+
+echo -e "Indexs dans fichier csv:\n-groupe=$col_groupe\nid Github=$col_idgithub\nIdentifiant=$col_id"
+
 
 today=$(date +"%Y%m%d-%H%M")
 logfile=log_clonage_${repo}_$today.csv
