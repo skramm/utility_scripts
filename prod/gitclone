@@ -67,8 +67,26 @@ then
 fi
 mkdir -p $dst
 
-echo -e "Indexs dans fichier csv:\n-groupe=$col_groupe\nid Github=$col_idgithub\nIdentifiant=$col_id"
+echo -e "Indexs dans fichier csv:\n -groupe=$col_groupe\n -id Github=$col_idgithub\n -Identifiant=$col_id"
 
+# verification
+
+while IFS=$sep read -ra tab
+do
+	word=${tab[0]}
+	if ! [ "${word:0:1}" == "#" ]
+	then
+		gr=${tab[$col_groupe]}
+		idurn=${tab[$col_id]}
+		idgh=${tab[$col_idgithub]}
+		echo "Vérification 1er depot: groupe='$gr' id='$idurn' id-depot='$idgh'"
+		break;
+	fi
+done < $input_file
+
+read -p "Correct? (O/N)" rep
+rep=${rep:-O}
+if [ "$rep" != "O" ] && [ "$rep" != "o" ]  ; then echo "Abandon!"; exit 1; fi
 
 today=$(date +"%Y%m%d-%H%M")
 logfile=log_clonage_${repo}_$today.csv
@@ -115,7 +133,6 @@ do
 			echo "succès"
 		fi
 	fi
-
 done < $input_file
 
 echo -e "*** bilan ***: total de $c_li lignes\n -succès:$c_ok\n -echecs:$c_err"
