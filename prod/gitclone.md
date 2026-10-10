@@ -12,7 +12,7 @@ Il faut évidemment leur IMPOSER le nom du dépot, et qu'il soit en "public".
 Pour leurs identifiant Github, ils sont par contre libres de choisir `Carotte23` ou `Superman56`.
 
 Il faut avoir préalablement un fichier csv contenant leur identifiant Github ainsi que leur groupe (par exemple A, B, C, ...) et un identifiant permettant de les connecter avec leur nom.
-Cette collecte peut se faire via un formulaire Moodle, ce qui donne automatiquement leur identifiant universitaire (qui est utilisé ici).
+Cette collecte peut se faire via un formulaire Moodle, ce qui donne automatiquement leur identifiant universitaire, mais tout autre moyen d'identification est possible.
 
 Ce fichier pourrait ressembler à ceci:
 ```
@@ -31,14 +31,28 @@ $ gitclone nomdepot inputfile [outputfolder]
 - `outputfolder`: nom du dossier de sortie.
 Peut être absent, les clones seront créés dans le dossier courant.
 
-Ceci va créer dans le dossier `outputfolder` un dossier `github_AAAAMMJJ_HHMM` contenant un dossier par groupe, et dans lequel on retrouvera les clones des dépots.
+Ceci va créer dans le dossier `outputfolder` un dossier `github_nomdepot_AAAAMMJJ_HHMM` contenant un dossier par groupe, et dans lequel on retrouvera les clones des dépots.
 
 
-Les index donnant le numéro de colonne dans le fichier CSV d'entrée sont paramétrable via un fichier `gitlone.conf` à placer dans le dossier courant.
+Les index donnant le numéro de colonne dans le fichier CSV d'entrée sont paramétrable via un fichier `gitclone.conf` à placer dans le dossier courant.
 S'il est absent, des valeurs par défaut sont utilisées, voir les variables
-`col_groupe`, `col_idgithub`,`col_idurn`.
+`col_groupe`, `col_idgithub`,`col_id`.
 
-Un fichier log `log_clonage_AAAAMMJJ_HHMM.csv` est automatiquement crée dans le dossier courant, et permet de logger les erreurs.
+Ce fichier pourra par exemple ressemble à ceci, si le groupe est en 1er champ dans le fichier csv, le nom de l'étudiant en 3ème et son identifiant Github en 2ème:
+
+```
+col_groupe=0
+col_id=2
+col_idgithub=1
+```
+
+Le séparateur de champ dans le fichier CSV d'entrée est `,` (virgule) par défaut, mais on peu le changer pour, par exemple, le point-virgule, en plaçant ceci dans le fichier `gitclone.conf`:
+```
+sep=";"
+```
+
+
+Un fichier log `log_clonage_nomdepot_AAAAMMJJ_HHMM.csv` est automatiquement crée dans le dossier courant, et permet de logger les erreurs.
 
 
 # Notes:
