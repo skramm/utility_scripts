@@ -101,11 +101,11 @@ do
 		then
 			((c_err+=1))
 			echo "ECHEC" >> $logfile
-			echo "ECHEC"
+			echo "\e[1;91mECHEC\e[0m"
 		else
 			((c_ok+=1))
 			echo "succès" >> $logfile
-			echo "succès"
+			echo "\e[1;92msuccès\e[0m"
 		fi
 	fi
 
