@@ -68,15 +68,16 @@ do
 		ANSWER=N
 		CURRENT=Y
 		echo "fin réponses"
+		echo "</ol>" >>$OUT
 	fi
 	
 	if [ $SPECIAL = N ] && [ $ANSWER = Y ]; then
 		if [ $FIRSTANSWER = Y ]; then
-			echo "<h3>réponses</h3>" >>$OUT
+			echo "<h3>réponses</h3><ol>" >>$OUT
 			FIRSTANSWER=N
 		fi
 		LI2=${LINE#"="}
-		echo "$LI2" >>$OUT
+		echo "<li>$LI2</li>" >>$OUT
 	fi
 
 
