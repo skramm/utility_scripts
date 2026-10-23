@@ -1,0 +1,93 @@
+#!/usr/bin/bash
+
+# Renumérotation des questions dans un fichier Gift
+# S. Kramm - 10/2026
+
+if [ -z "$1" ]; then
+	echo "Argument (nom fichier gift à traiter) manquant!"
+	exit 1
+fi
+
+if ! [ -f "$1" ]; then
+	echo "Fichier $1 introuvable!"
+	exit 1
+fi
+
+IN=$1
+OUT="${IN%.*}.html"
+
+echo "<html><head>" >$OUT
+echo "<style>" >>$OUT
+echo "pre { border: black 1px solid; font-size:150%;" >>$OUT
+echo "padding: 1em; margin; 1em;}" >>$OUT
+
+echo "</style>" >>$OUT
+echo "</head><body>" >>$OUT
+
+QUESTION=N
+CURRENT=N
+ANSWER=N
+SPECIAL=N
+
+ID=0
+#echo "-Renumérotation question fichier $IN: en cours..."
+while read LINE
+do
+	if [ ${#LINE} == 0 ]; then
+		CURRENT=N
+#		echo "ligne vide, on passe à la prochaine"
+		if [ $ISCLOSED = N ]; then
+				echo "</div>" >>$OUT
+				ISCLOSED=Y
+		fi
+		echo "" >>$OUT
+	fi
+	SPECIAL=N
+	
+	if [ "${LINE:0:2}" == "::" ]; then
+		IDX=$ID
+		if [ ${#ID} == 1 ]; then IDX=0$ID; fi
+		echo "<hr><div><h2>question $IDX</h2>" >>$OUT
+		((ID++))
+		CURRENT=Y
+		QUESTION=Y
+		SPECIAL=Y
+		ISCLOSED=N
+	fi
+	if [ "${LINE:0:1}" == "{" ]; then
+		QUESTION=N
+		ANSWER=Y
+		SPECIAL=Y
+		FIRSTANSWER=Y
+#		echo "{" >>$OUT
+		echo "debut réponses"
+	fi
+
+	if [ "${LINE:0:1}" == "}" ]; then
+		SPECIAL=N
+		ANSWER=N
+		CURRENT=Y
+		echo "fin réponses"
+	fi
+	
+	if [ $SPECIAL = N ] && [ $ANSWER = Y ]; then
+		if [ $FIRSTANSWER = Y ]; then
+			echo "<h3>réponses</h3>" >>$OUT
+			FIRSTANSWER=N
+		fi
+		LI2=${LINE#"="}
+		echo "$LI2" >>$OUT
+	fi
+
+
+	if [ $QUESTION = Y ] && [ $SPECIAL = N ]; then
+		echo "$LINE" >>$OUT
+	fi
+
+done < "$IN"
+
+echo "-Terminé, $ID questions trouvées, fichier de sortie=$OUT"
+
+echo "</body></html>" >>$OUT
+
+
