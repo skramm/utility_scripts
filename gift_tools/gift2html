@@ -33,17 +33,18 @@ ID=0
 #echo "-Renumérotation question fichier $IN: en cours..."
 while read LINE
 do
+# si la ligne est vide
 	if [ ${#LINE} == 0 ]; then
 		CURRENT=N
-#		echo "ligne vide, on passe à la prochaine"
-		if [ $ISCLOSED = N ]; then
+		if [ $ISCLOSED = N ]; then # fin de la question
 				echo "</div>" >>$OUT
 				ISCLOSED=Y
 		fi
 		echo "" >>$OUT
 	fi
 	SPECIAL=N
-	
+
+# si c'est l'entete d'une question
 	if [ "${LINE:0:2}" == "::" ]; then
 		IDX=$ID
 		if [ ${#ID} == 1 ]; then IDX=0$ID; fi
@@ -54,32 +55,40 @@ do
 		SPECIAL=Y
 		ISCLOSED=N
 	fi
+
+# début de la partie "réponses"s
 	if [ "${LINE:0:1}" == "{" ]; then
 		QUESTION=N
 		ANSWER=Y
 		SPECIAL=Y
 		FIRSTANSWER=Y
-#		echo "{" >>$OUT
-		echo "debut réponses"
+#		echo "debut réponses"
 	fi
 
+# fin des réponses
 	if [ "${LINE:0:1}" == "}" ]; then
 		SPECIAL=N
 		ANSWER=N
 		CURRENT=Y
-		echo "fin réponses"
+#		echo "fin réponses"
 		echo "</ol>" >>$OUT
 	fi
-	
+
+
 	if [ $SPECIAL = N ] && [ $ANSWER = Y ]; then
 		if [ $FIRSTANSWER = Y ]; then
-			echo "<h3>réponses</h3><ol>" >>$OUT
+			echo "<h3>Réponses:</h3><ol>" >>$OUT
 			FIRSTANSWER=N
 		fi
-		LI2=${LINE#"="}
-		echo "<li>$LI2</li>" >>$OUT
+		if [ "${LINE:0:1}" = "=" ]; then
+			LI2=${LINE#"="}
+			echo "<li>oui: $LI2</li>" >>$OUT
+		fi
+		if [ "${LINE:0:1}" = "~" ]; then
+			LI2=${LINE#"~"}
+			echo "<li>non: $LI2</li>" >>$OUT
+		fi
 	fi
-
 
 	if [ $QUESTION = Y ] && [ $SPECIAL = N ]; then
 		echo "$LINE" >>$OUT
