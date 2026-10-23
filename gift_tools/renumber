@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+# Renumérotation des questions dans un fichier Gift
+# S. Kramm - 10/2026
+
+if [ -z "$1" ]; then
+	echo "Argument (nom fichier gift à traiter) manquant!"
+	exit 1
+fi
+
+if ! [ -f "$1" ]; then
+	echo "Fichier $1 introuvable!"
+	exit 1
+fi
+
+IN=$1
+OUT="${IN%.*}_renum.gift"
+
+rm $OUT 2>/dev/null
+
+ID=0
+echo "-Renumérotation question fichier $IN: en cours..."
+while read LINE
+do
+	if [ "${LINE:0:2}" == "::" ]; then
+#		echo "QUESTION line=$LINE"
+		IDX=$ID
+		if [ ${#ID} == 1 ]; then IDX=0$ID; fi
+		echo "::q$IDX::[html]" >>$OUT
+		((ID++))
+	else
+		echo "$LINE" >>$OUT
+	fi
+done < "$IN"
+
+echo "-Terminé, $ID questions trouvées, fichier de sortie=$OUT"
+
