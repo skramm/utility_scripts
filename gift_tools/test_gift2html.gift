@@ -1,0 +1,42 @@
+CATEGORY:training1
+
+::q::[html]
+<h2>CONSIGNES (pas une question, car de pas de zone réponse)</h2>
+<ul>
+<li>Ici, du texte</li>
+<li>Ici aussi</li>
+</ul>
+
+
+::q::[html]
+Question de type QCM, avec une seule réponse possible et du code
+<pre>
+a=b
+b=c
+$ c=d
+</pre>
+Donner la réponse
+{
+=xxx
+~aaa
+~bbb
+}
+
+
+::q::[html]
+Question de type réponse courte, avec une seule réponse possible
+Donner la réponse
+{
+=xxx
+}
+
+
+::q::[html]
+Question de type réponse courte, avec une plusieurs réponses possible
+Donner la réponse
+{
+=xxx
+=yyy
+=zzz
+}
+

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+#NoDisplay=true
+Terminal=true
+Exec=/usr/local/bin/gift2html %f
+Name=gift2html
+Comment=Convert gift file to html
+Name[en_US]=gift2html.desktop

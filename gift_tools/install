@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Needs to be run with sudo
+
+cp gift2html /usr/local/bin/
+chmod +x /usr/local/bin/gift2html
+
+cp gift2html.desktop /usr/share/applications
+
+#xdg-mime default gift2html.desktop text/gift
+
+#update-mime-database $HOME/.local/share/mime
+#update-mime-database
+
+#update-desktop-database
+#update-desktop-database $HOME/.local/share/applications
